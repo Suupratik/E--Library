@@ -6,7 +6,7 @@ const morgan = require("morgan")
 const cookieParser = require("cookie-parser")
 const sessions = require("express-session")
 const mongoose = require("mongoose")
-const cors = require("cors")            // <-- added cors import here
+const cors = require("cors")
 const { apiV1 } = require("./routes")
 const { connectDb } = require("./db")
 const { UserModel } = require("./models/user")
@@ -16,7 +16,28 @@ mongoose.set("strictQuery", false)
 
 const app = express()
 
-app.use(cors())                        // <-- enable CORS for all requests here
+// ---- CORS Configuration ----
+const allowedOrigins = [
+  "https://supratiklibrary.netlify.app", // production
+  "http://localhost:3000" // local dev
+]
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true) // allow Postman/curl
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true)
+    }
+    return callback(new Error("CORS policy: Origin not allowed"))
+  },
+  credentials: true,
+  optionsSuccessStatus: 200
+}
+
+app.use(cors(corsOptions))
+app.options("*", cors(corsOptions))
+// ----------------------------
+
 app.use(morgan("dev"))
 app.use(express.json())
 app.use(cookieParser())
@@ -27,7 +48,7 @@ app.use(
     secret: process.env.SESSION_SECRET,
     saveUninitialized: true,
     cookie: { maxAge: 1000 * 60 * 60 * 24 }, // 1 day
-    resave: false, // better to set false unless you have a reason
+    resave: false
   })
 )
 
@@ -46,18 +67,19 @@ const PORT = process.env.PORT || 8080
 
 connectDb()
   .then(async () => {
-    // Create default users if they don't exist
     const admin = await UserModel.findOne({ username: "admin" })
-    if (admin == null) {
+    if (!admin) {
       await UserModel.create({ username: "admin", password: "admin", role: "admin" })
     }
     const guest = await UserModel.findOne({ username: "guest" })
-    if (guest == null) {
+    if (!guest) {
       await UserModel.create({ username: "guest", password: "guest", role: "guest" })
     }
   })
   .then(() => {
-    app.listen(PORT, () => console.log(`Server is listening on http://localhost:${PORT}`))
+    app.listen(PORT, () =>
+      console.log(`Server is listening on http://localhost:${PORT}`)
+    )
   })
   .catch((err) => {
     console.error("Failed to connect to database", err)
