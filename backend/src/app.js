@@ -6,6 +6,7 @@ const morgan = require("morgan")
 const cookieParser = require("cookie-parser")
 const sessions = require("express-session")
 const mongoose = require("mongoose")
+const cors = require("cors")            // <-- added cors import here
 const { apiV1 } = require("./routes")
 const { connectDb } = require("./db")
 const { UserModel } = require("./models/user")
@@ -15,6 +16,7 @@ mongoose.set("strictQuery", false)
 
 const app = express()
 
+app.use(cors())                        // <-- enable CORS for all requests here
 app.use(morgan("dev"))
 app.use(express.json())
 app.use(cookieParser())
