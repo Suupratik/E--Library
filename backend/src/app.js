@@ -69,11 +69,11 @@ connectDb()
   .then(async () => {
     const admin = await UserModel.findOne({ username: "admin" })
     if (!admin) {
-      await UserModel.create({ username: "admin", password: "admin", role: "admin" })
+      await UserModel.create({ username: "admin", password: "admin@6", role: "admin" })
     }
     const guest = await UserModel.findOne({ username: "guest" })
     if (!guest) {
-      await UserModel.create({ username: "guest", password: "guest", role: "guest" })
+      await UserModel.create({ username: "guest", password: "guest@6", role: "guest" })
     }
   })
   .then(() => {
